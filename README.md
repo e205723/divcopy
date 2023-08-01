@@ -47,7 +47,7 @@ token_clipboard_copier <directory> <pattern>
 ```
 For example:
 ```bash
-token_clipboard_copier src "*.tsx"
+token_clipboard_copier src "*.c"
 ```
 
 Follow the on-screen instructions to copy the chunks to your clipboard.
