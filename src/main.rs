@@ -84,12 +84,15 @@ fn main() {
 
     let mut clipboard: ClipboardContext = ClipboardProvider::new().unwrap();
 
-    for chunk in chunks {
+    let total_chunks = chunks.len();
+    for (i, chunk) in chunks.into_iter().enumerate() {
         let text = chunk.join(" ");
         clipboard.set_contents(text.clone()).unwrap();
-        println!("Copied a chunk. Press Enter to continue...");
-        std::io::stdin()
-            .read_line(&mut String::new())
-            .expect("Failed to read line");
+        if i < total_chunks - 1 {
+            println!("Copied a chunk. Press Enter to continue...");
+            std::io::stdin()
+                .read_line(&mut String::new())
+                .expect("Failed to read line");
+        }
     }
 }
