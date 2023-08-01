@@ -6,22 +6,25 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 
-const TOKEN_LIMIT: usize = 4096;
-
 fn tokenize(content: String) -> Vec<String> {
     content.split(' ').map(|s| s.to_string()).collect()
 }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-
-    if args.len() != 3 {
-        eprintln!("Usage: {} <directory> <pattern>", args[0]);
-        std::process::exit(1);
+    if args.len() < 3 {
+        println!("Please provide directory and pattern as command line arguments");
+        return;
     }
-
     let directory = &args[1];
     let pattern = &args[2];
+
+    let mut token_limit = 4096;
+    if args.len() > 3 {
+        if let Ok(limit) = args[3].parse::<usize>() {
+            token_limit = limit;
+        }
+    }
 
     let pattern = format!("{}/**/{}", directory, pattern);
     let mut chunks: Vec<Vec<String>> = Vec::new();
@@ -41,21 +44,32 @@ fn main() {
                     file_content.push_str("\n");
                 }
 
-                let tokens = tokenize(file_content.clone());
+                let mut tokens = tokenize(file_content.clone());
 
-                let tokens_len = tokens.len();
-                if count + tokens_len > TOKEN_LIMIT {
-                    chunks.push(chunk);
-                    chunk = Vec::new();
-                    count = 0;
-                }
+                while !tokens.is_empty() {
+                    let tokens_len = tokens.len();
+                    if count + tokens_len > token_limit {
+                        if !chunk.is_empty() {
+                            chunks.push(chunk);
+                            chunk = Vec::new();
+                        }
+                        count = 0;
+                    }
 
-                if tokens_len > TOKEN_LIMIT {
-                    println!("Warning: The file {} has more tokens than the TOKEN_LIMIT. It will be a separate chunk.", path.display());
-                    chunks.push(tokens);
-                } else {
-                    count += tokens_len;
-                    chunk.push(file_content);
+                    if tokens_len > token_limit {
+                        let (to_take, remaining) = tokens.split_at(token_limit - count);
+                        chunk.extend(to_take.iter().cloned());
+                        tokens = remaining.to_vec();
+                        count = chunk.len();
+                        if !chunk.is_empty() {
+                            chunks.push(chunk.clone());
+                            chunk.clear();
+                        }
+                    } else {
+                        count += tokens_len;
+                        chunk.extend(tokens.clone());
+                        tokens.clear();
+                    }
                 }
             }
             Err(e) => println!("{:?}", e),
