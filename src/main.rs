@@ -38,6 +38,8 @@ fn main() {
                 let reader = BufReader::new(file);
                 let mut file_content = String::new();
 
+                file_content.push_str(&format!("=====<{}>=====\n", path.display()));
+
                 for line in reader.lines() {
                     let line = line.expect("Failed to read line");
                     file_content.push_str(&line);
@@ -83,7 +85,7 @@ fn main() {
     let mut clipboard: ClipboardContext = ClipboardProvider::new().unwrap();
 
     for chunk in chunks {
-        let text = chunk.join("");
+        let text = chunk.join(" ");
         clipboard.set_contents(text.clone()).unwrap();
         println!("Copied a chunk. Press Enter to continue...");
         std::io::stdin()
