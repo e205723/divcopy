@@ -1,6 +1,7 @@
 use clipboard::ClipboardContext;
 use clipboard::ClipboardProvider;
 use glob::glob;
+use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
@@ -12,8 +13,15 @@ fn tokenize(content: String) -> Vec<String> {
 }
 
 fn main() {
-    let directory = "src/components/VideoEdit";
-    let pattern = "*.tsx";
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() != 3 {
+        eprintln!("Usage: {} <directory> <pattern>", args[0]);
+        std::process::exit(1);
+    }
+
+    let directory = &args[1];
+    let pattern = &args[2];
 
     let pattern = format!("{}/**/{}", directory, pattern);
     let mut chunks: Vec<Vec<String>> = Vec::new();
