@@ -9,7 +9,8 @@ use std::io::BufReader;
 /// This function takes a string and returns a vector of substrings.
 ///
 /// Each substring corresponds to a word in the input string.
-/// The function splits the input string at whitespace characters.
+/// The function splits the input string at whitespace characters and
+/// retains newline characters.
 ///
 /// # Arguments
 ///
@@ -19,7 +20,10 @@ use std::io::BufReader;
 ///
 /// * A vector of substrings
 fn tokenize(content: String) -> Vec<String> {
-    content.split_whitespace().map(|s| s.to_string()).collect()
+    content
+        .split(|c: char| c.is_whitespace() && c != '\n')
+        .map(|s| s.to_string())
+        .collect()
 }
 
 /// This function is the main entry point of the program.
