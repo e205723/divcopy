@@ -26,54 +26,20 @@ fn tokenize(content: String) -> Vec<String> {
         .collect()
 }
 
-/// This function is the main entry point of the program.
+/// This function processes all the files that match the given glob pattern in the directory and its
+/// subdirectories, reads the files' contents, tokenizes the contents, and returns the tokens
+/// in chunks of a specified size.
 ///
-/// It takes command-line arguments specifying a directory, a glob pattern, and an optional
-/// token limit. It finds all files that match the given pattern in the directory and its
-/// subdirectories, reads the files' contents, tokenizes the contents, and copies the tokens
-/// to the clipboard in chunks of a specified size.
+/// # Arguments
 ///
-/// The program interacts with the user through the command line. If an error occurs
-/// (such as a file cannot be opened), the error message is printed to the standard error.
+/// * `directory` - The directory to search for files.
+/// * `pattern` - The glob pattern to match file names against.
+/// * `token_limit` - The maximum number of tokens to include in each chunk.
 ///
-/// # Command-line Arguments
+/// # Returns
 ///
-/// 1. `directory` - The directory to search for files.
-/// 2. `pattern` - The glob pattern to match file names against.
-/// 3. `token_limit` - (Optional) The maximum number of tokens to include in each chunk.
-///
-/// # Example
-///
-/// ```
-/// cargo run ./my_directory *.txt 100
-/// ```
-/// This command will find all `.txt` files in `./my_directory` and its subdirectories,
-/// tokenize their contents, and copy the tokens to the clipboard in chunks of at most 100 tokens.
-fn main() {
-    // Collect command-line arguments
-    let args: Vec<String> = env::args().collect();
-
-    // Check for adequate command-line arguments
-    if args.len() < 3 {
-        eprintln!("Please provide directory and pattern as command line arguments");
-        std::process::exit(1);
-    }
-
-    let directory = &args[1];
-    let pattern = &args[2];
-
-    // Set the default limit for tokens
-    let mut token_limit = 4096;
-    if args.len() > 3 {
-        match args[3].parse::<usize>() {
-            Ok(limit) => token_limit = limit,
-            Err(e) => {
-                eprintln!("Failed to parse token limit: {}", e);
-                std::process::exit(1);
-            }
-        }
-    }
-
+/// * A vector of chunks, each chunk is a vector of strings (tokens).
+fn process_files(directory: &str, pattern: &str, token_limit: usize) -> Vec<Vec<String>> {
     // Construct the glob pattern
     let pattern = format!("{}/**/{}", directory, pattern);
     let mut chunks: Vec<Vec<String>> = Vec::new();
@@ -147,6 +113,59 @@ fn main() {
         chunks.push(chunk);
     }
 
+    chunks
+}
+
+/// This function is the main entry point of the program.
+///
+/// It takes command-line arguments specifying a directory, a glob pattern, and an optional
+/// token limit. It finds all files that match the given pattern in the directory and its
+/// subdirectories, reads the files' contents, tokenizes the contents, and copies the tokens
+/// to the clipboard in chunks of a specified size.
+///
+/// The program interacts with the user through the command line. If an error occurs
+/// (such as a file cannot be opened), the error message is printed to the standard error.
+///
+/// # Command-line Arguments
+///
+/// 1. `directory` - The directory to search for files.
+/// 2. `pattern` - The glob pattern to match file names against.
+/// 3. `token_limit` - (Optional) The maximum number of tokens to include in each chunk.
+///
+/// # Example
+///
+/// ```
+/// cargo run ./my_directory *.txt 100
+/// ```
+/// This command will find all `.txt` files in `./my_directory` and its subdirectories,
+/// tokenize their contents, and copy the tokens to the clipboard in chunks of at most 100 tokens.
+fn main() {
+    // Collect command-line arguments
+    let args: Vec<String> = env::args().collect();
+
+    // Check for adequate command-line arguments
+    if args.len() < 3 {
+        eprintln!("Please provide directory and pattern as command line arguments");
+        std::process::exit(1);
+    }
+
+    let directory = &args[1];
+    let pattern = &args[2];
+
+    // Set the default limit for tokens
+    let mut token_limit = 4096;
+    if args.len() > 3 {
+        match args[3].parse::<usize>() {
+            Ok(limit) => token_limit = limit,
+            Err(e) => {
+                eprintln!("Failed to parse token limit: {}", e);
+                std::process::exit(1);
+            }
+        }
+    }
+
+    let chunks = process_files(directory, pattern, token_limit);
+
     let mut clipboard: ClipboardContext = match ClipboardProvider::new() {
         Ok(context) => context,
         Err(e) => {
@@ -173,4 +192,39 @@ fn main() {
     }
 
     println!("Copied a chunk. All chunks copied to clipboard!");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tokenize() {
+        let input = "Hello, world!\nThis is a test.".to_string();
+        let expected_output = vec!["Hello,", "world!\nThis", "is", "a", "test."];
+        assert_eq!(tokenize(input), expected_output);
+    }
+
+    #[test]
+    fn test_process_files() {
+        let directory = "./test_files";
+        let pattern = "*.txt";
+        let token_limit = 100;
+        let expected_output = vec![vec![
+            "=====<test_files/file1.txt>=====\nHello,",
+            "world!\nThis",
+            "is",
+            "a",
+            "test.\n",
+            "=====<test_files/file2.txt>=====\nAnother",
+            "test",
+            "file.\nWith",
+            "multiple",
+            "lines.\n",
+        ]];
+        assert_eq!(
+            process_files(directory, pattern, token_limit),
+            expected_output
+        );
+    }
 }
