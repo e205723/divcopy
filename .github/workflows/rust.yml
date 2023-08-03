@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: sudo apt-get install libxcb-shape0-dev libxcb-xfixes0-dev
     - name: Setup Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -28,4 +30,3 @@ jobs:
       with:
         command: test
         args: --verbose
-
