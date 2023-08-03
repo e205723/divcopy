@@ -1,6 +1,6 @@
-# Token Clipboard Copier
+# divcopy
 
-`Token Clipboard Copier` is a utility written in Rust that reads and tokenizes text files, then copies chunks of them to your clipboard. Each chunk respects the boundary of files, and when a file contains tokens that exceed the predefined limit, the file content is gracefully split into multiple chunks.
+`divcopy` is a utility written in Rust that reads and tokenizes text files, then copies chunks of them to your clipboard. Each chunk respects the boundary of files, and when a file contains tokens that exceed the predefined limit, the file content is gracefully split into multiple chunks.
 
 ## Features
 - Recursively reads text files from a specified directory that matches a given pattern.
@@ -36,18 +36,18 @@ cargo build --release
 
 3. Move the binary to `/usr/local/bin` (or any directory included in your system's PATH):
 ```bash
-sudo mv target/release/token_clipboard_copier /usr/local/bin/
+sudo mv target/release/divcopy /usr/local/bin/
 ```
 
 ## Usage
 
 Run the program with a specified directory and pattern. Optionally, you can specify a third argument for the token limit (default is 4096):
 ```bash
-token_clipboard_copier <directory> <pattern> [token_limit]
+divcopy <directory> <pattern> [token_limit]
 ```
 For example:
 ```bash
-token_clipboard_copier src "*.c" 5000
+divcopy src "*.c" 5000
 ```
 
 Follow the on-screen instructions to copy the chunks to your clipboard.

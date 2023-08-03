@@ -1,5 +1,5 @@
 [package]
-name = "token_clipboard_copier"
+name = "divcopy"
 version = "0.1.0"
 edition = "2021"
 
